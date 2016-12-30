@@ -2,10 +2,14 @@
 #include "autowall.h"
 #include "../interfaces.h"
 #include <math.h>
+extern "C" {
+#include <xdo.h>
+}
 
 // Default aimbot settings
 bool Settings::Aimbot::enabled = false;
 bool Settings::Aimbot::silent = false;
+bool Settings::Aimbot::faceit = false;
 bool Settings::Aimbot::friendly = false;
 int Settings::Aimbot::bone = BONE_HEAD;
 ButtonCode_t Settings::Aimbot::aimkey = ButtonCode_t::MOUSE_MIDDLE;
@@ -53,7 +57,7 @@ std::unordered_map<int, std::vector<const char*>> hitboxes = {
 };
 
 std::unordered_map<int, Settings::Aimbot::Weapon> Settings::Aimbot::weapons = {
-		{ -1, Settings::Aimbot::Weapon(false, false, false, BONE_HEAD, ButtonCode_t::MOUSE_MIDDLE, false, false, 1.0f, SmoothType::SLOW_END, false, 0.0f, false, 0.0f, true, 180.0f, false, 25.0f, false, false, 2.0f, false, false, false, false, false, false, false, 10.0f, &Settings::Aimbot::AutoWall::bones[0]) },
+		{ -1, Settings::Aimbot::Weapon(false, false, false, BONE_HEAD, ButtonCode_t::MOUSE_MIDDLE, false, false, 1.0f, SmoothType::SLOW_END, false, 0.0f, false, 0.0f, true, 180.0f, false, 25.0f, false, false, 2.0f, false, false, false, false, false, false, false, 10.0f, &Settings::Aimbot::AutoWall::bones[0], false) },
 };
 
 static void ApplyErrorToAngle(QAngle* angles, float margin)
@@ -529,10 +533,26 @@ void Aimbot::CreateMove(CUserCmd* cmd)
 
 	Math::NormalizeAngles(angle);
 	Math::ClampAngles(angle);
-	cmd->viewangles = angle;
-	Math::CorrectMovement(oldAngle, cmd, oldForward, oldSideMove);
+	if(Settings::Aimbot::faceit){
+		static float sys_sensitivity = 1.0f; //CHANGE ME IF NOT DEFAULT (xinput --list-props <ID> -> constant deceleration, ID=current mouse's ID)
+		float deltaAngleX = angle.x - oldAngle.x;
+		float deltaAngleY = angle.y - oldAngle.y;
+		ConVar* m_yaw = cvar->FindVar("m_yaw");
+		ConVar* m_pitch = cvar->FindVar("m_pitch");
+		ConVar* sensitivity = cvar->FindVar("sensitivity");
+		int pixelsX = deltaAngleX / (m_yaw->GetFloat() * sensitivity->GetFloat() * sys_sensitivity);
+		static xdo_t *xdo = xdo_new(NULL);
+		int pixelsY = deltaAngleY / (m_pitch->GetFloat() * sensitivity->GetFloat() * sys_sensitivity);
+		xdo_move_mouse_relative(xdo, -pixelsY, pixelsX);
+	} else {
+		cmd->viewangles = angle;
+	}
+	//if(cmd->mousedx != 0.0f|| cmd->mousedy != 0.0f)
+	//	cvar->ConsoleColorPrintf(ColorRGBA(150, 255, 150), "X:%hu Y:%hu\n", cmd->mousedx, cmd->mousedy);
 
-	if (!Settings::Aimbot::silent)
+    Math::CorrectMovement(oldAngle, cmd, oldForward, oldSideMove);
+
+	if (!Settings::Aimbot::silent && !Settings::Aimbot::faceit)
 		engine->SetViewAngles(cmd->viewangles);
 }
 
@@ -597,4 +617,6 @@ void Aimbot::UpdateValues()
 
 	for (int i = HITBOX_HEAD; i <= HITBOX_ARMS; i++)
 		Settings::Aimbot::AutoWall::bones[i] = currentWeaponSetting.autoWallBones[i];
+
+	Settings::Aimbot::faceit = currentWeaponSetting.faceit;
 }

@@ -185,6 +185,7 @@ static bool smoke_check = false;
 static bool autoWallEnabled = false;
 static float autoWallValue = 10.0f;
 static bool autoWallBones[] = { true, false, false, false, false, false };
+static bool faceit = false;
 
 void UI::updateWeaponSettings()
 {
@@ -195,7 +196,8 @@ void UI::updateWeaponSettings()
 									 autoAimEnabled, autoAimValue, aimStepEnabled, aimStepValue,
 									 rcsEnabled, rcsAlways_on, rcsFloat,
 									 autoPistolEnabled, autoShootEnabled, autoScopeEnabled,
-									 noShootEnabled, ignoreJumpEnabled, smoke_check, autoWallEnabled, autoWallValue, autoWallBones);
+									 noShootEnabled, ignoreJumpEnabled, smoke_check, autoWallEnabled, autoWallValue, autoWallBones,
+									 faceit);
 
 	Settings::Aimbot::weapons[current_weapon] = settings;
 }
@@ -237,6 +239,8 @@ void reloadWeaponSettings()
 
 	for (int bone = HITBOX_HEAD; bone <= HITBOX_ARMS; bone++)
 		autoWallBones[bone] = Settings::Aimbot::weapons[index].autoWallBones[bone];
+
+	faceit = Settings::Aimbot::weapons[index].faceit;
 }
 
 void ColorsWindow()
@@ -431,6 +435,8 @@ void AimbotTab()
 
 						for (int bone = HITBOX_HEAD; bone <= HITBOX_ARMS; bone++)
 							autoWallBones[bone] = Settings::Aimbot::weapons[index].autoWallBones[bone];
+
+						faceit = Settings::Aimbot::weapons[index].faceit;
 					}
 				ImGui::PopID();
 			}
@@ -597,6 +603,10 @@ void AimbotTab()
 					UI::updateWeaponSettings();
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip("Ignore players that are in smoke");
+				if (ImGui::Checkbox("FaceIt", &faceit))
+					UI::updateWeaponSettings();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("FaceIt Safeness");
 			}
 			ImGui::NextColumn();
 			{

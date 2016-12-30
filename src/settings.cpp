@@ -121,6 +121,8 @@ void Settings::LoadDefaultsOrSave(std::string path)
 		for (int bone = HITBOX_HEAD; bone <= HITBOX_ARMS; bone++)
 			weaponSetting["AutoWall"]["Bones"][bone] = i.second.autoWallBones[bone];
 
+		weaponSetting["FACEIT"] = i.second.faceit;
+
 		#undef weaponSetting
 	}
 
@@ -431,7 +433,8 @@ void Settings::LoadConfig(std::string path)
 			weaponSetting["SmokeCheck"]["Enabled"].asBool(),
 			weaponSetting["AutoWall"]["Enabled"].asBool(),
 			weaponSetting["AutoWall"]["Value"].asFloat(),
-			autoWallBones
+			autoWallBones,
+			weaponSetting["FACEIT"].asBool()
 		);
 
 		Settings::Aimbot::weapons[weaponID] = weapon;

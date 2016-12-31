@@ -122,6 +122,7 @@ void Settings::LoadDefaultsOrSave(std::string path)
 			weaponSetting["AutoWall"]["Bones"][bone] = i.second.autoWallBones[bone];
 
 		weaponSetting["FACEIT"] = i.second.faceit;
+		weaponSetting["system_sens"] = i.second.system_sens;
 
 		#undef weaponSetting
 	}
@@ -434,7 +435,8 @@ void Settings::LoadConfig(std::string path)
 			weaponSetting["AutoWall"]["Enabled"].asBool(),
 			weaponSetting["AutoWall"]["Value"].asFloat(),
 			autoWallBones,
-			weaponSetting["FACEIT"].asBool()
+			weaponSetting["FACEIT"].asBool(),
+			weaponSetting["system_sens"].asFloat()
 		);
 
 		Settings::Aimbot::weapons[weaponID] = weapon;
